@@ -13,87 +13,12 @@ def scrape_url(url):
     print(r.status_code)
     return r
 
-def render_gw_info(gw_id = 3):
-    print("GW ID : ",gw_id)
-    gw_id = int(gw_id)
-    event = events[gw_id-1]
-    st.header(f"GAMEWEEK {gw_id} SUMMARY")
 
-    high_scr_team_page = f"https://fantasy.premierleague.com/entry/{event['highest_scoring_entry']}/event/{gw_id}"
-        
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Averge score", event['average_entry_score'])
-    with col2:
-        st.metric("Highest score", event['highest_score'])
-        st.write(high_scr_team_page)
-    with col3:
-        st.metric("Total transfers", num_processor(event['transfers_made']))
-        
-    most_sel = get_element_name_by_id(event['most_selected'])
-    most_cap = get_element_name_by_id(event['most_captained'])
-    most_vc = get_element_name_by_id(event['most_vice_captained'])
-    top_scr = get_element_name_by_id(event['top_element'])
-    top_scr_pts = event['top_element_info']['points']
-
-    if gw_id != 1:
-        most_tr = get_element_name_by_id(event['most_transferred_in'])
-    else:
-        most_tr = most_sel
-        
-
-    st.subheader("Key Players")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    with col1:
-        st.metric("Most selected", most_sel)
-
-    with col2:
-        st.metric("Most Cap", most_cap)
-    
-    with col3:
-        st.metric("Most VC", most_vc)
-    
-    with col4:
-        st.metric("Most transfered in", most_tr)
-    with col5:
-        st.metric("Top Scorer", top_scr, f"{top_scr_pts} pts")
-
-
-    
-    st.subheader("Chips Usage")
-    chip_plays = event['chip_plays']
-        
-    cap_3x = [chip['num_played'] for chip in chip_plays if chip['chip_name'] == '3xc'][0]
-    bboost = [chip['num_played'] for chip in chip_plays if chip['chip_name'] == 'bboost'][0]
-    try:
-        wildcard = [chip['num_played'] for chip in chip_plays if chip['chip_name'] == 'wildcard'][0]
-    except:
-        wildcard = NOT_AVAILABLE
-        
-    try:
-        freehit = [chip['num_played'] for chip in chip_plays if chip['chip_name'] == 'freehit'][0]
-    except:
-        freehit = NOT_AVAILABLE
-
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric("Bench Boost", num_processor(bboost))
-
-    with col2:
-        st.metric("Triple Captain", num_processor(cap_3x))
-    
-    with col3:
-        st.metric("Wildcard", num_processor(wildcard))
-    
-    with col4:
-        st.metric("Freehit", num_processor(freehit))
-
-
-def get_element_name_by_id(elem_id = 351):
-    for element in elements:
+def get_element_name_by_id(elem_id = 351, players = None):
+    print("Elem_id  :  ",elem_id)
+    for element in players:
         if element['id'] == elem_id:
             return element['web_name']
-
 
 def get_static_data():
     url = "https://fantasy.premierleague.com/api/bootstrap-static/"
@@ -124,16 +49,16 @@ def render_top_5():
     top_5 = standings['standings']['results'][:5]
     print(top_5)
 
-    st.header("Top 5 teams")
+    st.header(":blue[Top 5 teams]")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.subheader("Team name")
+        st.markdown("***:blue[Team name]***")
     with col2:
-        st.subheader("Player name")
+        st.markdown("***:blue[Player name]***")
     with col3:
-        st.subheader("Points")
+        st.markdown("***:blue[Points]***")
     with col4:
-        st.subheader("Team Link")
+        st.markdown("***:blue[Team Link]***")
 
     for team_dict in top_5:
         col1, col2, col3, col4 = st.columns(4)
@@ -172,10 +97,10 @@ def render_chip_usage():
     wc_perc = round(wc_val*100/total_players,2)
 
 
-    st.header("Chip Usage")
+    st.header(":blue[Chip Usage]")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown("***Triple Captain***")
+        st.markdown("***:blue[Triple Captain]***")
     with col2:
         st.markdown(f"{num_processor(tc_val)} ({tc_perc}%)")
     with col3:
@@ -183,7 +108,7 @@ def render_chip_usage():
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown("***Freehit***")
+        st.markdown("***:blue[Freehit]***")
     with col2:
         st.markdown(f"{num_processor(fh_val)} ({fh_perc}%)")
     with col3:
@@ -191,7 +116,7 @@ def render_chip_usage():
    
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown("***Wildcard***")
+        st.markdown("***:blue[Wildcard]***")
     with col2:
         st.markdown(f"{num_processor(wc_val)} ({wc_perc}%)")
     with col3:
@@ -199,7 +124,7 @@ def render_chip_usage():
         
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown("***Bench Boost***")
+        st.markdown("***:blue[Bench Boost]***")
     with col2:
         st.markdown(f"{num_processor(bb_val)} ({bb_perc}%)")
     with col3:
@@ -217,7 +142,7 @@ def render_chip_usage():
         bb_bar.progress(bb)
 
 if __name__ == "__main__":
-    st.title("Fantasy Premier League 2024/25 Overview")
+    st.title(":blue[Fantasy Premier League 2024/25 Overview]")
 
     # data = get_static_data()
     data = get_stored_data()
@@ -232,8 +157,9 @@ if __name__ == "__main__":
         if(event['is_next']):
             next_round_index = i
 
-    
-    st.subheader(f"Total players : {num_processor(data['total_players'])}")
+    st.divider()
+    st.subheader(f":blue[Total players :] {num_processor(data['total_players'])}")
+    st.subheader(f":blue[Upcoming deadline :] {date_parser(events[next_round_index]['deadline_time'])}")
     render_top_5()
     st.divider()
     render_chip_usage()
