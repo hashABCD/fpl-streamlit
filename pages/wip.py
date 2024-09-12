@@ -73,26 +73,44 @@ def generate_df(current_data, name, metric):
 
     return df
 
-def get_metric_df(player_ids, metric):
+def get_metric_df(player_ids, metric_list):
     df_list = []
     names = []
     for id in player_ids:
         name, current_data = get_cumulative_player_data(id)
         names.append(name)
-        df_list.append(generate_df(current_data, name, metric))
+        metric_df_dict = {}
+        for metric in metric_list:
+            metric_df_dict.update({metric : generate_df(current_data, name, metric)})
+        df_list.append(metric_df_dict)
 
-    df = df_list[0]
-    for x in df_list[1:]:
-        df=df.join(x.set_index('GW'), on='GW')
+    metric_df_list =[]
+    for metric in metric_list:
+        df = df_list[0][metric]
+        for x in df_list[1:]:
+            df=df.join(x[metric].set_index('GW'), on='GW')
+        metric_df_list.append(df)
 
-    return df, names
+    return metric_df_list, names
 
-player_ids = [RAND_ID, AB_ID]
-tot_points_df, names = get_metric_df(player_ids, 'total_points')
 
-st.write("Hello")
 
-st.line_chart(tot_points_df, x="GW", 
-              y=names, 
-               x_label="Gameweeks",
-                y_label="Total Points" )
+st.header("FANTASY PREMIER LEAGUE COMPARE")
+st.markdown("Enter your Entry Id and competitor's ID to compare.")
+    
+entry_list=[]
+entry_list.append(st.text_input("Enter your Entry ID :", AB_ID))
+entry_list.append(st.text_input("Enter competitor Entry ID :",RAND_ID))
+st.markdown("You can find entry id on points page URL")
+st.image("entry_id_help.png")
+
+metric_list = ['total_points', 'percentile_rank']
+metric_df_list, names = get_metric_df(entry_list, metric_list)
+
+col1, col2 = st.columns(2)
+with col1:
+    st.subheader("Total Points")
+    st.line_chart(metric_df_list[0], x="GW",y=names, x_label="Gameweeks")
+with col2:
+    st.subheader("Percentile Rank")
+    st.line_chart(metric_df_list[1], x="GW",y=names, x_label="Gameweeks")
